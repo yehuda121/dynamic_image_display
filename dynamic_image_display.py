@@ -49,8 +49,9 @@ def display_parts(parts, grid_size, window_size, num_parts_to_show):
                 screen.blit(part_image, (x, y))
 
 # Configurations
-grid_size = 4  # Divide the image into 4x4 parts
-num_parts_to_show = 4  # Display 4 parts at a time
+grid_size = 10  # Divide the image into 10x10 parts
+num_parts_to_show = grid_size * grid_size // 2  # Display 50% of parts
+
 window_size = (image_width, image_height)
 parts = split_image(image, grid_size)
 
