@@ -1,6 +1,8 @@
-from PIL import Image
+from PIL import Image, ImageEnhance
 import pygame
 import random
+
+
 
 # Load the image
 image_path = "C:/Users/yehud/Desktop/image.jpg"
@@ -39,14 +41,25 @@ def display_parts(parts, grid_size, window_size, num_parts_to_show):
         # Randomly select parts to display
         visible_parts = random.sample(parts, num_parts_to_show)
 
-        # Draw each part in its original position
+        # Draw each part with dimming for non-visible parts
         for box, part in parts:
             x, y, _, _ = box
-            part_image = pygame.image.fromstring(
-                part.tobytes(), part.size, part.mode
-            )
-            if box in [b for b, _ in visible_parts]:  # Only show visible parts
-                screen.blit(part_image, (x, y))
+            if box in visible_parts:
+                part_image = pygame.image.fromstring(
+                    part.tobytes(), part.size, part.mode
+                )
+            else:
+                dimmed_part = make_transparent(part, box)
+                part_image = pygame.image.fromstring(
+                    dimmed_part.tobytes(), dimmed_part.size, dimmed_part.mode
+                )
+            screen.blit(part_image, (x, y))
+
+# Dim the part for the background
+def make_transparent(image, transparency):
+    enhancer = ImageEnhance.Brightness(image)
+    transparent_image = enhancer.enhance(transparency)
+    return transparent_image
 
 # Configurations
 grid_size = 10  # Divide the image into 10x10 parts
