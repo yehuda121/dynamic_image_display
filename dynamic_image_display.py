@@ -49,10 +49,10 @@ def display_parts(parts, grid_size, window_size, num_parts_to_show):
                     part.tobytes(), part.size, part.mode
                 )
             else:
-                dimmed_part = make_transparent(part, box)
-                part_image = pygame.image.fromstring(
-                    dimmed_part.tobytes(), dimmed_part.size, dimmed_part.mode
-                )
+                # Precompute dimmed parts during splitting
+                dimmed_part = ImageEnhance.Brightness(part_image).enhance(transparency)
+                parts.append((box, part_image, dimmed_part))
+
             screen.blit(part_image, (x, y))
 
 # Dim the part for the background
