@@ -2,15 +2,13 @@ from PIL import Image, ImageEnhance
 import pygame
 import random
 
-
-
 # Load the image
-image_path = "C:/Users/yehud/Desktop/image.jpg"
+image_path = "C:/Users/yehud/Desktop/high frinquncy picture/WIN_20241123_15_48_32_Pro.jpg"
 image = Image.open(image_path)
 image_width, image_height = image.size
 
-# Split the image into parts
-def split_image(image, grid_size):
+# Split the image into parts and precompute dimmed versions
+def split_image(image, grid_size, transparency):
     parts = []
     part_width = image_width // grid_size
     part_height = image_height // grid_size
@@ -22,51 +20,52 @@ def split_image(image, grid_size):
                 (j + 1) * part_width,
                 (i + 1) * part_height,
             )
-            parts.append((box, image.crop(box)))
+            part_image = image.crop(box)
+            dimmed_part = ImageEnhance.Brightness(part_image).enhance(transparency)
+            parts.append((box, part_image, dimmed_part))
     return parts
 
 # Display the parts
 def display_parts(parts, grid_size, window_size, num_parts_to_show):
     pygame.init()
     screen = pygame.display.set_mode(window_size)
-    pygame.display.set_caption("Image Display")
+    pygame.display.set_caption("Dynamic Image Display")
     running = True
 
     while running:
-        screen.fill((0, 0, 0))  # Black background
+        screen.fill((255, 255, 255))  # White background
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
         # Randomly select parts to display
         visible_parts = random.sample(parts, num_parts_to_show)
+        visible_boxes = {box for box, _, _ in visible_parts}
 
-        # Draw each part with dimming for non-visible parts
-        for box, part in parts:
+        # Render each part
+        for box, part, dimmed_part in parts:
             x, y, _, _ = box
-            if box in visible_parts:
+            if box in visible_boxes:
                 part_image = pygame.image.fromstring(
                     part.tobytes(), part.size, part.mode
                 )
             else:
-                # Precompute dimmed parts during splitting
-                dimmed_part = ImageEnhance.Brightness(part_image).enhance(transparency)
-                parts.append((box, part_image, dimmed_part))
-
+                part_image = pygame.image.fromstring(
+                    dimmed_part.tobytes(), dimmed_part.size, dimmed_part.mode
+                )
             screen.blit(part_image, (x, y))
 
-# Dim the part for the background
-def make_transparent(image, transparency):
-    enhancer = ImageEnhance.Brightness(image)
-    transparent_image = enhancer.enhance(transparency)
-    return transparent_image
+        pygame.display.flip()
+
+    pygame.quit()
+
 
 # Configurations
 grid_size = 10  # Divide the image into 10x10 parts
 num_parts_to_show = grid_size * grid_size // 2  # Display 50% of parts
-
+transparency = 0.3  # Transparency for non-visible parts
 window_size = (image_width, image_height)
-parts = split_image(image, grid_size)
+parts = split_image(image, grid_size, transparency)
 
 # Run the display
 display_parts(parts, grid_size, window_size, num_parts_to_show)
